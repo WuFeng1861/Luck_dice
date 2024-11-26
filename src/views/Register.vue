@@ -100,6 +100,26 @@
             </div>
           </div>
 
+          <!-- 验证码输入框和图片 -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700">验证码</label>
+            <div class="mt-1 flex gap-4">
+              <input
+                v-model="captchaText"
+                type="text"
+                required
+                maxlength="4"
+                class="block flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="请输入验证码"
+              />
+              <div 
+                class="w-32 h-10 bg-gray-100 rounded-lg overflow-hidden cursor-pointer"
+                @click="refreshCaptcha"
+                v-html="captchaSvg"
+              ></div>
+            </div>
+          </div>
+
           <div>
             <button
               type="submit"
@@ -124,10 +144,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
+import api from '@/utils/axios'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -137,6 +158,27 @@ const password = ref('')
 const confirmPassword = ref('')
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
+const captchaText = ref('')
+const captchaSvg = ref('')
+const captchaId = ref('')
+
+// 获取验证码
+const getCaptcha = async () => {
+  try {
+    const response = await api.get('/api/auth/captcha')
+    captchaSvg.value = response.svg
+    captchaId.value = response.captchaId
+  } catch (error) {
+    console.error('获取验证码失败:', error)
+    ElMessage.error('获取验证码失败')
+  }
+}
+
+// 刷新验证码
+const refreshCaptcha = () => {
+  getCaptcha()
+  captchaText.value = ''
+}
 
 const handleRegister = async () => {
   if (password.value !== confirmPassword.value) {
@@ -147,12 +189,19 @@ const handleRegister = async () => {
   try {
     await authStore.register({
       username: username.value,
-      password: password.value
+      password: password.value,
+      captchaId: captchaId.value,
+      captchaText: captchaText.value
     })
     ElMessage.success('注册成功')
     router.push('/login')
   } catch (error) {
     ElMessage.error(error.response?.data?.error?.message || '注册失败')
+    refreshCaptcha()
   }
 }
-</script> 
+
+onMounted(() => {
+  getCaptcha()
+})
+</script>

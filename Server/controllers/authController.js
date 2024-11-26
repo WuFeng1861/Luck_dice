@@ -97,7 +97,6 @@ exports.login = async (req, res) => {
   }
 };
 
-// 其他控制器方法保持不变...
 exports.logout = async (req, res) => {
   res.json({ message: 'Successfully logged out' });
 };
@@ -144,7 +143,17 @@ exports.getUser = async (req, res) => {
 
 exports.register = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, captchaId, captchaText } = req.body;
+
+    // 验证验证码
+    if (!validateCaptcha(captchaId, captchaText)) {
+      return res.status(400).json({
+        error: {
+          code: 'INVALID_CAPTCHA',
+          message: '验证码错误或已过期'
+        }
+      });
+    }
 
     if (!validateUsername(username) || !validatePassword(password)) {
       return res.status(400).json({

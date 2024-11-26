@@ -14,8 +14,7 @@
     "pinia": "^2.0.0",
     "element-plus": "^2.0.0",
     "axios": "^1.0.0",
-    "three": "^0.160.0",
-    "svg-captcha": "^1.4.0"
+    "three": "^0.160.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.0.0",
