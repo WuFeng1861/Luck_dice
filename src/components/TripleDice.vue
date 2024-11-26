@@ -89,7 +89,7 @@
                 class="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
               <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
-                ��码
+                码
               </span>
             </div>
             <button 
@@ -259,8 +259,8 @@ const placeBet = async () => {
         : `点数总和 ${sum}！你输掉了 ${betAmount.value} 筹码！`
     };
 
-    // 添加到历史记录
-    await gameStore.addToHistory({
+    // 添加调试日志
+    console.log('Adding history with data:', {
       gameType: 'triple',
       amount: betAmount.value,
       win,
@@ -269,7 +269,18 @@ const placeBet = async () => {
       selectedOption: selectedOption.value
     });
 
-    await gameStore.fetchHistory();
+    // 添加到历史记录并获取更新后的分页数据
+    const paginationData = await gameStore.addToHistory({
+      gameType: 'triple',
+      amount: betAmount.value,
+      win: Boolean(win),  // 确保是布尔值
+      finalBalance: String(authStore.user?.balance),  // 确保是字符串
+      diceResults: Array.isArray(diceResults) ? diceResults : [],  // 确保是数组
+      selectedOption: String(selectedOption.value)  // 确保是字符串
+    });
+
+    // 更新分页数据
+    pagination.value = paginationData;
     showResult.value = true;
   } catch (error) {
     console.error('下注失败:', error);

@@ -26,9 +26,21 @@ class Cache {
     return data.value;
   }
 
-  // 删除缓存
-  delete(key) {
-    this.store.delete(key);
+  // 删除缓存（支持通配符）
+  delete(pattern) {
+    if (pattern.includes('*')) {
+      // 将通配符转换为正则表达式
+      const regex = new RegExp('^' + pattern.replace('*', '.*') + '$');
+      // 遍历所有键，删除匹配的缓存
+      for (const key of this.store.keys()) {
+        if (regex.test(key)) {
+          this.store.delete(key);
+        }
+      }
+    } else {
+      // 直接删除指定的键
+      this.store.delete(pattern);
+    }
   }
 
   // 清空所有缓存

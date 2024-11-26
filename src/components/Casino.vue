@@ -220,8 +220,9 @@ const placeBet = async () => {
       amount: betAmount.value,
       win,
       finalBalance: authStore.user?.balance,
-      diceResult: finalNumber,
-      selectedFace: selectedFace.value
+      diceResults: [finalNumber],
+      selectedOption: selectedFace.value,
+      gameType: 'single'
     });
 
     // 更新分页数据

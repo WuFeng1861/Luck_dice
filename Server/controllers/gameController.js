@@ -3,6 +3,10 @@ const Game = require('../models/Game');
 const { validateBet } = require('../utils/validator');
 const sequelize = require('../config/database');
 const { cache, withCache, deleteCache } = require('../utils/cache');
+const BigNumber = require('bignumber.js');
+
+// 配置 BigNumber
+BigNumber.config({ DECIMAL_PLACES: 2, ROUNDING_MODE: BigNumber.ROUND_DOWN });
 
 // 获取余额
 exports.getBalance = async (req, res) => {
@@ -27,8 +31,13 @@ exports.updateBalance = async (req, res) => {
     const { amount } = req.body;
     const user = await User.findByPk(req.user.id);
     
+    // 使用 BigNumber 进行计算和比较
+    const currentBalance = new BigNumber(user.balance);
+    const changeAmount = new BigNumber(amount);
+    const newBalance = currentBalance.plus(changeAmount);
+    
     // 检查余额是否足够（如果是减少余额的情况）
-    if (amount < 0 && user.balance + amount < 0) {
+    if (changeAmount.isNegative() && newBalance.isLessThan(0)) {
       return res.status(400).json({
         error: {
           code: 'INSUFFICIENT_BALANCE',
@@ -37,13 +46,31 @@ exports.updateBalance = async (req, res) => {
       });
     }
 
-    user.balance += Number(amount);
-    await user.save();
+    // 更新用户余额
+    try {
+      await user.updateBalance(changeAmount.toString());
+    } catch (error) {
+      return res.status(400).json({
+        error: {
+          code: 'INSUFFICIENT_BALANCE',
+          message: error.message
+        }
+      });
+    }
+
+    // 立即删除用户缓存
+    await deleteCache(`user:${user.id}`);
+
+    // 延迟双删
+    setTimeout(async () => {
+      await deleteCache(`user:${user.id}`);
+    }, 500);
 
     res.json({
       balance: user.balance
     });
   } catch (error) {
+    console.error('Update balance error:', error);
     res.status(500).json({
       error: {
         code: 'INTERNAL_SERVER_ERROR',
@@ -61,10 +88,16 @@ exports.placeBet = async (req, res) => {
     const { amount, selectedFace } = req.body;
     const user = req.user;
     const userId = user.id;
+    
+    // 转换为 BigNumber
+    const betAmount = new BigNumber(amount);
+    const userBalance = new BigNumber(user.balance);
 
-    // 删除相关缓存
-    await deleteCache(`history:${userId}:*`);
-    await deleteCache(`user:${userId}`);
+    // 立即删除缓存
+    await Promise.all([
+      deleteCache(`user:${userId}`),
+      deleteCache(`history:${userId}:*`)
+    ]);
 
     // 验证输入
     if (!validateBet(amount, selectedFace)) {
@@ -77,7 +110,7 @@ exports.placeBet = async (req, res) => {
     }
 
     // 检查余额
-    if (user.balance < amount) {
+    if (userBalance.isLessThan(betAmount)) {
       return res.status(400).json({
         error: {
           code: 'INSUFFICIENT_BALANCE',
@@ -89,12 +122,14 @@ exports.placeBet = async (req, res) => {
     // 生成骰子结果
     const finalNumber = Math.floor(Math.random() * 6) + 1;
     const win = finalNumber === selectedFace;
-    const multiplier = 5.5;
-    const winAmount = win ? amount * multiplier : -amount;
+    const multiplier = new BigNumber('5.5');
+    const winAmount = win 
+      ? betAmount.multipliedBy(multiplier) 
+      : betAmount.negated();
 
     // 更新用户余额
     try {
-      await user.updateBalance(winAmount);
+      await user.updateBalance(winAmount.toString());
     } catch (error) {
       return res.status(400).json({
         error: {
@@ -108,26 +143,28 @@ exports.placeBet = async (req, res) => {
     await Game.create({
       userId: user.id,
       gameType: 'single',
-      amount: Number(amount),
+      amount: betAmount.toString(),
       selectedOption: String(selectedFace),
-      diceResults: [finalNumber], // 保存为数组格式，保持与三骰子游戏一致
+      diceResults: [finalNumber],
       win,
       finalBalance: user.balance
     }, { transaction: t });
 
     await t.commit();
 
-    // 延迟删除缓存
+    // 延迟双删缓存
     setTimeout(async () => {
-      await deleteCache(`history:${userId}:*`);
-      await deleteCache(`user:${userId}`);
+      await Promise.all([
+        deleteCache(`user:${userId}`),
+        deleteCache(`history:${userId}:*`)
+      ]);
     }, 500);
 
     res.json({
       finalNumber,
       win,
-      winAmount: win ? amount * multiplier : 0,
-      amount: Number(amount)
+      winAmount: win ? winAmount.toString() : '0',
+      amount: betAmount.toString()
     });
   } catch (error) {
     await t.rollback();
@@ -187,22 +224,63 @@ exports.getHistory = async (req, res) => {
   }
 };
 
-// 添加历史记录
+// 添加游戏历史记录
 exports.addHistory = async (req, res) => {
   try {
-    const { amount, win, finalBalance, diceResult, selectedFace } = req.body;
-    
-    const game = await Game.create({
-      userId: req.user.id,
+    const userId = req.user.id;
+    const { 
+      gameType,
       amount,
       win,
       finalBalance,
-      diceResult,
-      selectedFace
+      diceResults,
+      selectedOption,
+    } = req.body;
+
+    // 创建游戏记录
+    const game = await Game.create({
+      userId,
+      gameType,
+      amount,
+      win,
+      finalBalance,
+      diceResults: diceResults,
+      selectedOption: selectedOption,
+      createdAt: new Date()
     });
 
-    res.json(game);
+    // 删除该用户的所有历史记录缓存
+    await deleteCache(`history:${userId}:*`);
+
+    // 获取最新的历史记录
+    const page = 1;
+    const pageSize = 10;
+    const offset = (page - 1) * pageSize;
+
+    const { count, rows } = await Game.findAndCountAll({
+      where: { userId },
+      order: [['createdAt', 'DESC']],
+      limit: pageSize,
+      offset
+    });
+
+    const result = {
+      history: rows,
+      pagination: {
+        currentPage: page,
+        pageSize,
+        totalItems: count,
+        totalPages: Math.ceil(count / pageSize)
+      }
+    };
+
+    // 设置新的缓存
+    cache.set(`history:${userId}:${page}`, result, 300);
+
+    res.json(result);
+
   } catch (error) {
+    console.error('Add history error:', error);
     res.status(500).json({
       error: {
         code: 'INTERNAL_SERVER_ERROR',
@@ -219,6 +297,17 @@ exports.placeTripleBet = async (req, res) => {
   try {
     const { amount, selectedOption } = req.body;
     const user = req.user;
+    const userId = user.id;
+
+    // 转换为 BigNumber
+    const betAmount = new BigNumber(amount);
+    const userBalance = new BigNumber(user.balance);
+
+    // 立即删除缓存
+    await Promise.all([
+      deleteCache(`user:${userId}`),
+      deleteCache(`history:${userId}:*`)
+    ]);
 
     // 验证输入
     if (!['big', 'small', 'middle', 'triple', 'pair', 'straight'].includes(selectedOption)) {
@@ -231,7 +320,7 @@ exports.placeTripleBet = async (req, res) => {
     }
 
     // 检查余额
-    if (user.balance < amount) {
+    if (userBalance.isLessThan(betAmount)) {
       return res.status(400).json({
         error: {
           code: 'INSUFFICIENT_BALANCE',
@@ -276,7 +365,7 @@ exports.placeTripleBet = async (req, res) => {
       multiplier = 2; // 概率41.67%，赔率2倍
     }
     else if (selectedOption === 'straight' && (
-      // 顺子（三个连续数字）
+      // 顺子（三个续数字）
       (diceResults.includes(1) && diceResults.includes(2) && diceResults.includes(3)) ||
       (diceResults.includes(2) && diceResults.includes(3) && diceResults.includes(4)) ||
       (diceResults.includes(3) && diceResults.includes(4) && diceResults.includes(5)) ||
@@ -286,11 +375,23 @@ exports.placeTripleBet = async (req, res) => {
       multiplier = 6; // 概率13.89%，赔率6倍
     }
 
-    winAmount = win ? amount * multiplier : -amount;
+    // 计算赢得金额
+    const multipliers = {
+      big: new BigNumber('1.8'),
+      small: new BigNumber('1.8'),
+      middle: new BigNumber('4'),
+      triple: new BigNumber('30'),
+      pair: new BigNumber('2'),
+      straight: new BigNumber('6')
+    };
+
+    winAmount = win 
+      ? betAmount.multipliedBy(multipliers[selectedOption]) 
+      : betAmount.negated();
 
     // 更新用户余额
     try {
-      await user.updateBalance(winAmount);
+      await user.updateBalance(winAmount.toString());
     } catch (error) {
       return res.status(400).json({
         error: {
@@ -304,7 +405,7 @@ exports.placeTripleBet = async (req, res) => {
     await Game.create({
       userId: user.id,
       gameType: 'triple',
-      amount: Number(amount),
+      amount: betAmount.toString(),
       selectedOption,
       diceResults,
       win,
@@ -313,12 +414,20 @@ exports.placeTripleBet = async (req, res) => {
 
     await t.commit();
 
+    // 延迟双删缓存
+    setTimeout(async () => {
+      await Promise.all([
+        deleteCache(`user:${userId}`),
+        deleteCache(`history:${userId}:*`)
+      ]);
+    }, 500);
+
     res.json({
       diceResults,
       sum,
       win,
-      winAmount: win ? amount * multiplier : 0,
-      amount: Number(amount)
+      winAmount: win ? winAmount.toString() : '0',
+      amount: betAmount.toString()
     });
   } catch (error) {
     await t.rollback();
