@@ -30,18 +30,10 @@
         <div class="space-y-6">
           <!-- 牌面区域 -->
           <div class="flex justify-center gap-20 mb-8">
-            <div class="text-center">
-              <h3 class="text-xl font-bold mb-4 text-red-600">龙</h3>
-              <div class="w-32 h-48 bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center text-4xl font-bold">
-                {{ result ? result.dragonCard : '?' }}
-              </div>
-            </div>
-            <div class="text-center">
-              <h3 class="text-xl font-bold mb-4 text-yellow-600">虎</h3>
-              <div class="w-32 h-48 bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center text-4xl font-bold">
-                {{ result ? result.tigerCard : '?' }}
-              </div>
-            </div>
+            <DragonTigerAnimation 
+              :result="result" 
+              :showCards="!!result && showResult"
+            />
           </div>
 
           <!-- 选择区域 -->
@@ -139,6 +131,7 @@ import ResultMessage from './ResultMessage.vue'
 import api from '@/utils/axios'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
+import DragonTigerAnimation from './DragonTigerAnimation.vue'
 
 const router = useRouter()
 const gameStore = useGameStore()

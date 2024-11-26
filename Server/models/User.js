@@ -1,6 +1,7 @@
 const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const BigNumber = require('bignumber.js');
+const bcrypt = require('bcryptjs');
 
 // 配置 BigNumber，设置更严格的精度控制
 BigNumber.config({
@@ -68,6 +69,9 @@ class User extends Model {
       throw new Error('余额更新失败');
     }
   }
+  async comparePassword(candidatePassword) {
+    return bcrypt.compare(candidatePassword, this.password);
+  };
 }
 
 User.init({
@@ -107,7 +111,15 @@ User.init({
 }, {
   sequelize,
   modelName: 'User',
-  timestamps: true
+  timestamps: true,
+  hooks: {
+    beforeSave: async (user) => {
+      if (user.changed('password')) {
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+      }
+    }
+  }
 });
 
 module.exports = User; 

@@ -56,7 +56,12 @@
               <!-- 游戏类型和时间 -->
               <div class="flex justify-between items-center mb-2">
                 <span class="text-sm font-medium text-gray-600">
-                  {{ record.gameType === 'single' ? '幸运骰子' : '三倍幸运骰子' }}
+                  {{ 
+                    record.gameType === 'single' ? '幸运骰子' : 
+                    record.gameType === 'triple' ? '三倍幸运骰子' :
+                    record.gameType === 'dragon-tiger' ? '龙虎斗' : 
+                    record.gameType 
+                  }}
                 </span>
                 <span class="text-xs text-gray-500">
                   {{ new Date(record.createdAt).toLocaleString() }}
@@ -278,6 +283,15 @@ const formatSelection = (selection, gameType) => {
     return `点数 ${selection}`;
   }
   
+  if (gameType === 'dragon-tiger') {
+    const optionLabels = {
+      'dragon': '龙',
+      'tiger': '虎',
+      'tie': '和'
+    };
+    return optionLabels[selection] || selection;
+  }
+  
   const optionLabels = {
     'big': '大',
     'small': '小',
@@ -298,6 +312,18 @@ const formatResult = (results, gameType) => {
   
   if (gameType === 'single') {
     return `点数 ${results[0]}`;
+  }
+
+  if (gameType === 'dragon-tiger') {
+    const cardNames = {
+      1: 'A',
+      11: 'J',
+      12: 'Q',
+      13: 'K'
+    };
+    const dragonCard = cardNames[results[0]] || results[0];
+    const tigerCard = cardNames[results[1]] || results[1];
+    return `龙: ${dragonCard} vs 虎: ${tigerCard}`;
   }
   
   // 三骰子游戏

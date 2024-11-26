@@ -65,6 +65,36 @@ router.post('/bet/triple', auth, gameController.placeTripleBet);
 
 /**
  * @swagger
+ * /api/game/bet/dragon-tiger:
+ *   post:
+ *     summary: 进行龙虎斗游戏下注
+ *     tags: [游戏]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amount
+ *               - selectedFace
+ *             properties:
+ *               amount:
+ *                 type: number
+ *                 description: 下注金额
+ *               selectedFace:
+ *                 type: number
+ *                 description: 选择的骰子面数(1-6)
+ *     responses:
+ *       200:
+ *         description: 游戏结果
+ */
+router.post('/bet/dragon-tiger', auth, gameController.placeDragonTigerBet);
+
+/**
+ * @swagger
  * /api/game/history:
  *   get:
  *     summary: 获取游戏历史记录

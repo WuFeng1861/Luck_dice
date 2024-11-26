@@ -27,7 +27,7 @@
           </svg>
         </button>
 
-        <!-- 结果图标 - 居中显示 -->
+        <!-- 结果图标 -->
         <div class="flex justify-center mb-4">
           <div 
             class="w-16 h-16 rounded-full flex items-center justify-center"
@@ -64,17 +64,25 @@
 
         <!-- 游戏结果详情 -->
         <div class="space-y-2 text-gray-600">
-          <!-- 骰子结果 -->
-          <p>
-            <template v-if="Array.isArray(result?.diceResults)">
-              <!-- 三骰子游戏 -->
-              骰子点数：{{ result?.diceResults.join(' + ') }} = {{ result?.sum }}
-            </template>
-            <template v-else>
-              <!-- 单骰子游戏 -->
-              骰子点数：{{ result?.diceResult }}
-            </template>
-          </p>
+          <!-- 根据游戏类型显示不同的结果 -->
+          <template v-if="isDragonTiger">
+            <p>
+              龙牌点数：{{ getCardDisplay(result?.dragonCard) }}
+              <span class="text-sm">({{ getCardSuit(result?.dragonCard) }})</span>
+            </p>
+            <p>
+              虎牌点数：{{ getCardDisplay(result?.tigerCard) }}
+              <span class="text-sm">({{ getCardSuit(result?.tigerCard) }})</span>
+            </p>
+          </template>
+          <template v-else>
+            <p>
+              {{ Array.isArray(result?.diceResults) 
+                ? `骰子点数：${result.diceResults.join(' + ')} = ${result.sum}`
+                : `骰子点数：${result?.diceResult}`
+              }}
+            </p>
+          </template>
 
           <!-- 下注和输赢金额 -->
           <p>
@@ -102,7 +110,9 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue';
+
+const props = defineProps({
   show: {
     type: Boolean,
     required: true
@@ -114,6 +124,28 @@ defineProps({
 });
 
 defineEmits(['update:show']);
+
+// 判断是否为龙虎斗游戏
+const isDragonTiger = computed(() => {
+  return props.result?.dragonCard !== undefined && props.result?.tigerCard !== undefined;
+});
+
+// 获取卡片显示文字
+const getCardDisplay = (cardNumber) => {
+  const cardNames = {
+    1: 'A',
+    11: 'J',
+    12: 'Q',
+    13: 'K'
+  };
+  return cardNames[cardNumber] || cardNumber;
+};
+
+// 获取卡片花色
+const getCardSuit = (cardNumber) => {
+  const suits = ['♠', '♥', '♣', '♦'];
+  return suits[cardNumber % 4];
+};
 </script>
 
 <style scoped>

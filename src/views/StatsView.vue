@@ -137,13 +137,107 @@
             暂无数据
           </div>
         </div>
+
+        <!-- 龙虎斗统计 -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <h2 class="text-xl font-bold mb-4">龙虎斗统计</h2>
+          <div v-if="dragonTigerStats" class="space-y-4">
+            <!-- 基础数据 -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">总游戏次数</div>
+                <div class="text-2xl font-bold">{{ dragonTigerStats.totalGames }}</div>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">总下注金额</div>
+                <div class="text-2xl font-bold">{{ dragonTigerStats.totalBets }}</div>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">总支出金额</div>
+                <div class="text-2xl font-bold">{{ dragonTigerStats.totalPayouts }}</div>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="text-sm text-gray-600">净利润</div>
+                <div 
+                  class="text-2xl font-bold"
+                  :class="dragonTigerStats.profit >= 0 ? 'text-green-600' : 'text-red-600'"
+                >
+                  {{ dragonTigerStats.profit }}
+                </div>
+              </div>
+            </div>
+
+            <!-- 详细统计 -->
+            <div class="grid grid-cols-3 gap-4">
+              <!-- 龙统计 -->
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h3 class="font-bold mb-2 text-red-600">龙</h3>
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">总次数:</span>
+                    <span>{{ dragonTigerStats.typeStats.dragon }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">胜利次数:</span>
+                    <span>{{ dragonTigerStats.typeStats.dragonWins }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">胜率:</span>
+                    <span>{{ ((dragonTigerStats.typeStats.dragonWins / dragonTigerStats.typeStats.dragon) * 100).toFixed(2) }}%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 虎统计 -->
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h3 class="font-bold mb-2 text-yellow-600">虎</h3>
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">总次数:</span>
+                    <span>{{ dragonTigerStats.typeStats.tiger }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">胜利次数:</span>
+                    <span>{{ dragonTigerStats.typeStats.tigerWins }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">胜率:</span>
+                    <span>{{ ((dragonTigerStats.typeStats.tigerWins / dragonTigerStats.typeStats.tiger) * 100).toFixed(2) }}%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 和统计 -->
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h3 class="font-bold mb-2 text-purple-600">和</h3>
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">总次数:</span>
+                    <span>{{ dragonTigerStats.typeStats.tie }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">胜利次数:</span>
+                    <span>{{ dragonTigerStats.typeStats.tieWins }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">胜率:</span>
+                    <span>{{ ((dragonTigerStats.typeStats.tieWins / dragonTigerStats.typeStats.tie) * 100).toFixed(2) }}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="text-gray-500 text-center py-8">
+            暂无数据
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
@@ -151,6 +245,11 @@ import api from '@/utils/axios'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+// 添加 stats 状态
+const stats = ref([]);
+const selectedPeriod = ref('daily')
+const dateRange = ref([])
 
 // 检查权限
 onMounted(async () => {
@@ -162,11 +261,6 @@ onMounted(async () => {
   await fetchStats('daily')
 })
 
-const selectedPeriod = ref('daily')
-const dateRange = ref([])
-const singleGameStats = ref(null)
-const tripleGameStats = ref(null)
-
 const periodLabels = {
   daily: '今日',
   weekly: '本周',
@@ -177,9 +271,8 @@ const periodLabels = {
 const fetchStats = async (period) => {
   try {
     const response = await api.get(`/api/stats/${period}`)
-    const stats = response.stats
-    singleGameStats.value = stats.find(s => s.gameType === 'single')
-    tripleGameStats.value = stats.find(s => s.gameType === 'triple')
+    stats.value = response.stats;
+    selectedPeriod.value = period;
   } catch (error) {
     console.error('获取统计数据失败:', error)
     ElMessage.error('获取统计数据失败')
@@ -200,12 +293,23 @@ const fetchCustomStats = async () => {
         endDate: dateRange.value[1]
       }
     })
-    const stats = response.stats
-    singleGameStats.value = stats.find(s => s.gameType === 'single')
-    tripleGameStats.value = stats.find(s => s.gameType === 'triple')
+    stats.value = response.stats;
   } catch (error) {
     console.error('获取统计数据失败:', error)
     ElMessage.error('获取统计数据失败')
   }
 }
+
+// 获取各游戏统计数据
+const singleGameStats = computed(() => {
+  return stats.value?.find(s => s.gameType === 'single');
+});
+
+const tripleGameStats = computed(() => {
+  return stats.value?.find(s => s.gameType === 'triple');
+});
+
+const dragonTigerStats = computed(() => {
+  return stats.value?.find(s => s.gameType === 'dragon-tiger');
+});
 </script> 

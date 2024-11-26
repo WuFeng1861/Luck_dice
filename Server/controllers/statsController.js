@@ -19,6 +19,8 @@ const getGameStats = async (startDate, endDate) => {
             WHEN gameType = 'triple' AND selectedOption = 'triple' THEN 30
             WHEN gameType = 'triple' AND selectedOption = 'pair' THEN 2
             WHEN gameType = 'triple' AND selectedOption = 'straight' THEN 6
+            WHEN gameType = 'dragon-tiger' AND selectedOption IN ('dragon', 'tiger') THEN 1
+            WHEN gameType = 'dragon-tiger' AND selectedOption = 'tie' THEN 8
             ELSE 0
           END
         ELSE 0 END)`),
@@ -26,6 +28,24 @@ const getGameStats = async (startDate, endDate) => {
       ],
       [sequelize.fn('COUNT', sequelize.literal('CASE WHEN win = true THEN 1 END')), 'totalWins'],
       [sequelize.fn('COUNT', sequelize.literal('CASE WHEN win = false THEN 1 END')), 'totalLosses'],
+      // 添加游戏类型统计
+      [
+        sequelize.literal(`
+          CASE gameType
+            WHEN 'dragon-tiger' THEN
+              JSON_OBJECT(
+                'dragon', CAST(COUNT(CASE WHEN selectedOption = 'dragon' THEN 1 END) AS CHAR),
+                'tiger', CAST(COUNT(CASE WHEN selectedOption = 'tiger' THEN 1 END) AS CHAR),
+                'tie', CAST(COUNT(CASE WHEN selectedOption = 'tie' THEN 1 END) AS CHAR),
+                'dragonWins', CAST(COUNT(CASE WHEN selectedOption = 'dragon' AND win = true THEN 1 END) AS CHAR),
+                'tigerWins', CAST(COUNT(CASE WHEN selectedOption = 'tiger' AND win = true THEN 1 END) AS CHAR),
+                'tieWins', CAST(COUNT(CASE WHEN selectedOption = 'tie' AND win = true THEN 1 END) AS CHAR)
+              )
+            ELSE NULL
+          END
+        `),
+        'typeStats'
+      ]
     ],
     where: {
       createdAt: {
@@ -37,14 +57,40 @@ const getGameStats = async (startDate, endDate) => {
   });
 
   // 计算每个游戏的盈利和胜率
-  return stats.map(stat => ({
-    ...stat,
-    totalBets: Number(stat.totalBets),
-    totalPayouts: Number(stat.totalPayouts),
-    profit: Number(stat.totalBets) - Number(stat.totalPayouts),
-    winRate: (stat.totalWins / (Number(stat.totalWins) + Number(stat.totalLosses)) * 100).toFixed(2) + '%',
-    houseEdge: ((Number(stat.totalBets) - Number(stat.totalPayouts)) / Number(stat.totalBets) * 100).toFixed(2) + '%'
-  }));
+  return stats.map(stat => {
+    // 解析 typeStats，如果是字符串则解析，否则保持原样
+    let parsedTypeStats = null;
+    if (stat.typeStats) {
+      try {
+        parsedTypeStats = typeof stat.typeStats === 'string' 
+          ? JSON.parse(stat.typeStats) 
+          : stat.typeStats;
+        
+        // 将字符串数字转换为数字
+        Object.keys(parsedTypeStats).forEach(key => {
+          parsedTypeStats[key] = Number(parsedTypeStats[key]);
+        });
+      } catch (error) {
+        console.error('Error parsing typeStats:', error);
+        parsedTypeStats = null;
+      }
+    }
+
+    return {
+      ...stat,
+      totalBets: Number(stat.totalBets),
+      totalPayouts: Number(stat.totalPayouts),
+      profit: Number(stat.totalBets) - Number(stat.totalPayouts),
+      winRate: (stat.totalWins / (Number(stat.totalWins) + Number(stat.totalLosses)) * 100).toFixed(2) + '%',
+      houseEdge: ((Number(stat.totalBets) - Number(stat.totalPayouts)) / Number(stat.totalBets) * 100).toFixed(2) + '%',
+      typeStats: parsedTypeStats,
+      gameTypeName: {
+        'single': '幸运骰子',
+        'triple': '三倍幸运骰子',
+        'dragon-tiger': '龙虎斗'
+      }[stat.gameType]
+    };
+  });
 };
 
 // 获取每日统计
