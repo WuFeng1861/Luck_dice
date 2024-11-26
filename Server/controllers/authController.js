@@ -2,10 +2,46 @@ const User = require('../models/User');
 const { generateToken } = require('../utils/jwt');
 const { validateUsername, validatePassword } = require('../utils/validator');
 const { cache, deleteCache } = require('../utils/cache');
+const { generateCaptcha, validateCaptcha } = require('../utils/captcha');
+const { v4: uuidv4 } = require('uuid');
+
+// 获取验证码
+exports.getCaptcha = async (req, res) => {
+  try {
+    const captcha = generateCaptcha();
+    const captchaId = uuidv4();
+    
+    // 将验证码存入缓存，设置60秒过期
+    cache.set(`captcha:${captchaId}`, captcha.text, 5*60);
+    
+    res.json({
+      captchaId,
+      svg: captcha.svg
+    });
+  } catch (error) {
+    console.error('Generate captcha error:', error);
+    res.status(500).json({
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: '生成验证码失败'
+      }
+    });
+  }
+};
 
 exports.login = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, captchaId, captchaText } = req.body;
+
+    // 验证验证码
+    if (!validateCaptcha(captchaId, captchaText)) {
+      return res.status(400).json({
+        error: {
+          code: 'INVALID_CAPTCHA',
+          message: '验证码错误或已过期'
+        }
+      });
+    }
 
     // 验证输入
     if (!validateUsername(username) || !validatePassword(password)) {
@@ -61,8 +97,8 @@ exports.login = async (req, res) => {
   }
 };
 
+// 其他控制器方法保持不变...
 exports.logout = async (req, res) => {
-  // 由于使用JWT，服务器端不需要处理登出
   res.json({ message: 'Successfully logged out' });
 };
 
@@ -71,7 +107,6 @@ exports.getUser = async (req, res) => {
     const userId = req.user.id;
     const cacheKey = `user:${userId}`;
 
-    // 尝试从缓存获取
     const cachedUser = cache.get(cacheKey);
     if (cachedUser) {
       return res.json(cachedUser);
@@ -93,8 +128,7 @@ exports.getUser = async (req, res) => {
       balance: user.balance
     };
 
-    // 设置缓存
-    cache.set(cacheKey, userData, 300); // 缓存5分钟
+    cache.set(cacheKey, userData, 300);
 
     res.json(userData);
   } catch (error) {
@@ -112,7 +146,6 @@ exports.register = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // 验证输入
     if (!validateUsername(username) || !validatePassword(password)) {
       return res.status(400).json({
         error: {
@@ -122,7 +155,6 @@ exports.register = async (req, res) => {
       });
     }
 
-    // 检查用户名是否已存在
     const existingUser = await User.findOne({ where: { username } });
     if (existingUser) {
       return res.status(400).json({
@@ -133,7 +165,6 @@ exports.register = async (req, res) => {
       });
     }
 
-    // 创建新用户
     const user = await User.create({
       username,
       password
@@ -155,4 +186,4 @@ exports.register = async (req, res) => {
       }
     });
   }
-}; 
+};
