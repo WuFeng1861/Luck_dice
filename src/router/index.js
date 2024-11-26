@@ -56,6 +56,12 @@ const routes = [
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: NotFound
+  },
+  {
+    path: '/games/dragon-tiger',
+    name: 'DragonTiger',
+    component: () => import('@/components/DragonTiger.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 

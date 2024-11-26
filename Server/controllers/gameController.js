@@ -439,4 +439,118 @@ exports.placeTripleBet = async (req, res) => {
       }
     });
   }
+};
+
+// 龙虎斗游戏下注
+exports.placeDragonTigerBet = async (req, res) => {
+  const t = await sequelize.transaction();
+
+  try {
+    const { amount, selectedOption } = req.body;
+    const user = req.user;
+    const userId = user.id;
+
+    // 转换为 BigNumber
+    const betAmount = new BigNumber(amount);
+    const userBalance = new BigNumber(user.balance);
+
+    // 立即删除缓存
+    await Promise.all([
+      deleteCache(`user:${userId}`),
+      deleteCache(`history:${userId}:*`)
+    ]);
+
+    // 验证输入
+    if (!['dragon', 'tiger', 'tie'].includes(selectedOption)) {
+      return res.status(400).json({
+        error: {
+          code: 'INVALID_INPUT',
+          message: '无效的选择选项'
+        }
+      });
+    }
+
+    // 检查余额
+    if (userBalance.isLessThan(betAmount)) {
+      return res.status(400).json({
+        error: {
+          code: 'INSUFFICIENT_BALANCE',
+          message: '余额不足'
+        }
+      });
+    }
+
+    // 生成牌面点数（1-13）
+    const dragonCard = Math.floor(Math.random() * 13) + 1;
+    const tigerCard = Math.floor(Math.random() * 13) + 1;
+
+    // 判断输赢和倍率
+    let win = false;
+    let multiplier = new BigNumber('0');
+
+    if (selectedOption === 'dragon') {
+      win = dragonCard > tigerCard;
+      multiplier = new BigNumber('1');
+    } else if (selectedOption === 'tiger') {
+      win = tigerCard > dragonCard;
+      multiplier = new BigNumber('1');
+    } else if (selectedOption === 'tie') {
+      win = dragonCard === tigerCard;
+      multiplier = new BigNumber('8');
+    }
+
+    const winAmount = win 
+      ? betAmount.multipliedBy(multiplier) 
+      : betAmount.negated();
+
+    // 更新用户余额
+    try {
+      await user.updateBalance(winAmount.toString());
+    } catch (error) {
+      return res.status(400).json({
+        error: {
+          code: 'INSUFFICIENT_BALANCE',
+          message: error.message
+        }
+      });
+    }
+
+    // 记录游戏
+    await Game.create({
+      userId: user.id,
+      gameType: 'dragon-tiger',
+      amount: betAmount.toString(),
+      selectedOption,
+      diceResults: [dragonCard, tigerCard],  // 使用 diceResults 存储牌面点数
+      win,
+      finalBalance: user.balance
+    }, { transaction: t });
+
+    await t.commit();
+
+    // 延迟双删缓存
+    setTimeout(async () => {
+      await Promise.all([
+        deleteCache(`user:${userId}`),
+        deleteCache(`history:${userId}:*`)
+      ]);
+    }, 500);
+
+    res.json({
+      dragonCard,
+      tigerCard,
+      win,
+      winAmount: win ? winAmount.toString() : '0',
+      amount: betAmount.toString()
+    });
+  } catch (error) {
+    await t.rollback();
+    console.error('Place dragon-tiger bet error:', error);
+    res.status(500).json({
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: '服务器内部错误'
+      }
+    });
+  }
 }; 
