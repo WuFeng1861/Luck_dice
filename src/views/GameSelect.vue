@@ -23,6 +23,22 @@
             >
               数据统计
             </router-link>
+            <div class="flex gap-2">
+              <button
+                  v-if="authStore.hasAddress"
+                  @click="showRecharge = true"
+                  class="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
+              >
+                充值
+              </button>
+              <button
+                  v-if="authStore.hasAddress"
+                  @click="showRechargeHistory = true"
+                  class="px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
+              >
+                充值记录
+              </button>
+            </div>
             <button
                 v-if="!authStore.hasAddress"
                 @click="showAddressBinding = true"
@@ -43,11 +59,11 @@
       <!-- 游戏列表标题 -->
       <div class="text-center mb-6 sm:mb-8">
         <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">选择游戏</h1>
-        <p class="mt-2 text-gray-600">选择您想要体验的游戏</p>
+        <p class="mt-2 text-gray-600 text-sm sm:text-base">选择您想要体验的游戏</p>
       </div>
 
       <!-- 游戏列表 -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
         <!-- 幸运骰子游戏 -->
         <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-all duration-200">
           <div class="h-36 sm:h-48 bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center">
@@ -55,12 +71,12 @@
               <div class="absolute inset-0 bg-white rounded-lg transform rotate-45"></div>
               <div class="absolute inset-2 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg transform -rotate-45 flex items-center justify-center">
                 <div class="grid grid-cols-3 gap-1">
-                  <div class="w-2 h-2 bg-white rounded-full"></div>
-                  <div class="w-2 h-2 bg-white rounded-full"></div>
-                  <div class="w-2 h-2 bg-white rounded-full"></div>
-                  <div class="w-2 h-2 bg-white rounded-full"></div>
-                  <div class="w-2 h-2 bg-white rounded-full"></div>
-                  <div class="w-2 h-2 bg-white rounded-full"></div>
+                  <div class="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white rounded-full"></div>
+                  <div class="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white rounded-full"></div>
+                  <div class="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white rounded-full"></div>
+                  <div class="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white rounded-full"></div>
+                  <div class="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white rounded-full"></div>
+                  <div class="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white rounded-full"></div>
                 </div>
               </div>
             </div>
@@ -72,7 +88,7 @@
             </p>
             <router-link
                 to="/casino"
-                class="block w-full text-center py-2 sm:py-3 bg-gradient-to-r from-purple-600 to-blue- 600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-sm sm:text-base"
+                class="block w-full text-center py-2 sm:py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-sm sm:text-base"
             >
               开始游戏
             </router-link>
@@ -107,9 +123,9 @@
         <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-all duration-200">
           <div class="h-36 sm:h-48 bg-gradient-to-r from-red-600 to-yellow-600 flex items-center justify-center">
             <div class="flex gap-4 sm:gap-8">
-              <div class="text-white text-4xl sm:text-6xl font-bold">龙</div>
+              <div class="text-white text-3xl sm:text-6xl font-bold">龙</div>
               <div class="text-white text-2xl sm:text-4xl font-bold">VS</div>
-              <div class="text-white text-4xl sm:text-6xl font-bold">虎</div>
+              <div class="text-white text-3xl sm:text-6xl font-bold">虎</div>
             </div>
           </div>
           <div class="p-4 sm:p-6">
@@ -148,13 +164,21 @@
         </div>
       </div>
     </div>
-
     <!-- 绑定地址对话框 -->
     <AddressBinding
         v-model="showAddressBinding"
         :initial-address="authStore.address"
         :can-close="authStore.hasAddress"
         @success="handleAddressBindingSuccess"
+    />
+    <!-- 充值对话框 -->
+    <RechargeDialog
+        v-model="showRecharge"
+    />
+
+    <!-- 充值记录对话框 -->
+    <RechargeHistoryDialog
+        v-model="showRechargeHistory"
     />
   </div>
 </template>
@@ -164,10 +188,14 @@ import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import RechargeDialog from '@/components/RechargeDialog.vue'
+import RechargeHistoryDialog from '@/components/RechargeHistoryDialog.vue'
 import AddressBinding from '@/components/AddressBinding.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const showRecharge = ref(false)
+const showRechargeHistory = ref(false)
 const showAddressBinding = ref(false)
 
 onMounted(() => {
@@ -179,7 +207,6 @@ onMounted(() => {
 const handleAddressBindingSuccess = (address) => {
   authStore.bindAddress(address)
 }
-
 const handleLogout = async () => {
   try {
     await authStore.logout()
