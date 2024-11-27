@@ -1,4 +1,5 @@
 import axios from 'axios'
+import {useAuthStore} from "@/stores/auth.js";
 
 // 创建 axios 实例
 const api = axios.create({
@@ -12,9 +13,13 @@ const api = axios.create({
 // 请求拦截器
 api.interceptors.request.use(
   config => {
+    // 从 localStorage 获取 token
     const token = localStorage.getItem('token')
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      // 确保 headers 对象存在
+      config.headers = config.headers || {}
+      // 设置认证头
+      config.headers['Authorization'] = `Bearer ${token}`
     }
     return config
   },
@@ -25,12 +30,16 @@ api.interceptors.request.use(
 
 // 响应拦截器
 api.interceptors.response.use(
-  response => response,
+  response => {
+    // 直接返回响应数据
+    return response.data
+  },
   error => {
+    // 如果是 401 错误，可能是 token 过期
     if (error.response?.status === 401) {
-      // 处理未授权情况
-      const authStore = useAuthStore()
-      authStore.logout()
+        // 处理未授权情况
+        const authStore = useAuthStore()
+        authStore.logout()
     }
     return Promise.reject(error)
   }

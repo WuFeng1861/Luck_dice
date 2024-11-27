@@ -140,7 +140,7 @@ import { storeToRefs } from 'pinia'
 import ThreeDice from './ThreeDice.vue'
 import HistoryPanel from './HistoryPanel.vue'
 import ResultMessage from './ResultMessage.vue'
-import api from '@/utils/axios'
+import api from '@/api/axios.js'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 

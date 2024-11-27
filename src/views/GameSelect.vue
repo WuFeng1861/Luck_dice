@@ -16,16 +16,23 @@
             </div>
           </div>
           <div class="flex gap-4">
-            <router-link 
-              v-if="authStore.user?.id === 1"
-              to="/stats"
-              class="px-6 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg hover:from-green-700 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+            <router-link
+                v-if="authStore.user?.id === 1"
+                to="/stats"
+                class="px-6 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg hover:from-green-700 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               数据统计
             </router-link>
-            <button 
-              @click="handleLogout"
-              class="px-6 py-2 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg hover:from-red-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+            <button
+                v-if="!authStore.hasAddress"
+                @click="showAddressBinding = true"
+                class="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              {{ '绑定地址' }}
+            </button>
+            <button
+                @click="handleLogout"
+                class="px-6 py-2 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg hover:from-red-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               退出登录
             </button>
@@ -63,9 +70,9 @@
             <p class="text-gray-600 mb-4">
               选择一个骰子面数并下注，猜中获得5倍奖励！快来试试你的运气吧！
             </p>
-            <router-link 
-              to="/casino"
-              class="block w-full text-center py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            <router-link
+                to="/casino"
+                class="block w-full text-center py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
             >
               开始游戏
             </router-link>
@@ -87,9 +94,9 @@
             <p class="text-gray-600 mb-4">
               三枚骰子，猜大小中！中奖最高可获得30倍奖励！
             </p>
-            <router-link 
-              to="/triple-dice"
-              class="block w-full text-center py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
+            <router-link
+                to="/triple-dice"
+                class="block w-full text-center py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
             >
               开始游戏
             </router-link>
@@ -110,9 +117,9 @@
             <p class="text-gray-600 mb-4">
               经典对战，猜大小赢筹码！龙虎对决，最高8倍奖励！
             </p>
-            <router-link 
-              to="/games/dragon-tiger"
-              class="block w-full text-center py-3 bg-gradient-to-r from-red-600 to-yellow-600 text-white rounded-lg hover:from-red-700 hover:to-yellow-700 transition-all duration-200 shadow-md hover:shadow-lg"
+            <router-link
+                to="/games/dragon-tiger"
+                class="block w-full text-center py-3 bg-gradient-to-r from-red-600 to-yellow-600 text-white rounded-lg hover:from-red-700 hover:to-yellow-700 transition-all duration-200 shadow-md hover:shadow-lg"
             >
               开始游戏
             </router-link>
@@ -131,9 +138,9 @@
             <p class="text-gray-600 mb-4">
               更多精彩游戏正在开发中，敬请期待！
             </p>
-            <button 
-              disabled
-              class="w-full py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed"
+            <button
+                disabled
+                class="w-full py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed"
             >
               即将推出
             </button>
@@ -141,16 +148,37 @@
         </div>
       </div>
     </div>
+
+    <!-- 绑定地址对话框 -->
+    <AddressBinding
+        v-model="showAddressBinding"
+        :initial-address="authStore.address"
+        :can-close="authStore.hasAddress"
+        @success="handleAddressBindingSuccess"
+    />
   </div>
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import AddressBinding from '@/components/AddressBinding.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const showAddressBinding = ref(false)
+
+onMounted(() => {
+  if (!authStore.hasAddress) {
+    showAddressBinding.value = true
+  }
+})
+
+const handleAddressBindingSuccess = (address) => {
+  authStore.bindAddress(address)
+}
 
 const handleLogout = async () => {
   try {
@@ -181,4 +209,4 @@ const handleLogout = async () => {
 .hover\:to-blue-700:hover {
   --tw-gradient-to: #1d4ed8;
 }
-</style> 
+</style>
