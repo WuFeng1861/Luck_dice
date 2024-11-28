@@ -11,7 +11,7 @@
               </svg>
             </div>
             <div>
-              <h2 class="text-xl font-bold text-gray-900">欢迎, {{ authStore.user?.username }}</h2>
+              <h2 class="text-xl font-bold text-gray-900">Game ONE 欢迎, {{ authStore.user?.username }}</h2>
               <p class="text-lg font-medium text-green-600">余额: {{ authStore.user?.balance }} 筹码</p>
             </div>
           </div>

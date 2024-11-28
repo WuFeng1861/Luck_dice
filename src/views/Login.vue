@@ -1,9 +1,10 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-    <div class="max-w-md w-full bg-white rounded-xl shadow-lg overflow-hidden">
+  <div class="min-h-screen flex items-center justify-center px-4 relative">
+    <SciFiBackground />
+    <div class="max-w-md w-full bg-white/90 backdrop-blur-lg rounded-xl shadow-lg overflow-hidden">
       <!-- 头部渐变背景 -->
       <div class="bg-gradient-to-r from-purple-600 to-blue-600 p-8 text-white">
-        <h2 class="text-3xl font-bold text-center">欢迎回来</h2>
+        <h2 class="text-3xl font-bold text-center">Game ONE</h2>
         <p class="text-center mt-2 text-white/80">登录您的游戏账号</p>
       </div>
 
@@ -15,7 +16,7 @@
                 v-model="username"
                 type="text"
                 required
-                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white/50"
                 placeholder="请输入用户名"
             />
           </div>
@@ -27,7 +28,7 @@
                   v-model="password"
                   :type="showPassword ? 'text' : 'password'"
                   required
-                  class="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors pr-10"
+                  class="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors pr-10 bg-white/50"
                   placeholder="请输入密码"
               />
               <button
@@ -69,11 +70,11 @@
                   type="text"
                   required
                   maxlength="4"
-                  class="block w-24 sm:w-32 px-2 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-center"
+                  class="block w-24 sm:w-32 px-2 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-center bg-white/50"
                   placeholder="验证码"
               />
               <div
-                  class="flex-1 h-10 bg-gray-100 rounded-lg overflow-hidden cursor-pointer flex items-center justify-center"
+                  class="flex-1 h-10 bg-white rounded-lg overflow-hidden cursor-pointer flex items-center justify-center"
                   @click="refreshCaptcha"
                   v-html="captchaSvg"
               ></div>
@@ -109,6 +110,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
 import api from '@/api/axios.js'
+import SciFiBackground from '@/components/SciFiBackground.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -120,7 +122,6 @@ const captchaText = ref('')
 const captchaSvg = ref('')
 const captchaId = ref('')
 
-// 获取验证码
 const getCaptcha = async () => {
   try {
     const response = await api.get('/api/auth/captcha')
@@ -132,7 +133,6 @@ const getCaptcha = async () => {
   }
 }
 
-// 刷新验证码
 const refreshCaptcha = () => {
   getCaptcha()
   captchaText.value = ''
