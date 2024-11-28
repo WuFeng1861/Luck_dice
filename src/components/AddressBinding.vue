@@ -50,19 +50,20 @@
           </div>
 
           <!-- 验证码 -->
-          <div class="flex gap-2">
+          <div class="flex flex-col sm:flex-row gap-2">
             <input
                 v-model="captchaText"
                 type="text"
                 maxlength="4"
-                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                class="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 placeholder="请输入验证码"
             />
             <div
-                class="w-32 h-10 bg-gray-100 rounded-lg overflow-hidden cursor-pointer"
+                class="w-full sm:w-2/3 h-[42px] bg-gray-100 rounded-lg overflow-hidden cursor-pointer flex items-center justify-center"
                 @click="refreshCaptcha"
-                v-html="captchaSvg"
-            ></div>
+            >
+              <div class="captcha-container w-full h-full flex items-center justify-center" v-html="captchaSvg"></div>
+            </div>
           </div>
         </div>
 
@@ -209,5 +210,20 @@ watch(() => props.modelValue, (newVal) => {
 .fade-enter-from .transform,
 .fade-leave-to .transform {
   transform: scale(0.95);
+}
+
+.captcha-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+}
+
+.captcha-container :deep(svg) {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 </style>
