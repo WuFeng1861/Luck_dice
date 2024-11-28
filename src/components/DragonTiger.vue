@@ -33,6 +33,8 @@
             <DragonTigerAnimation
                 :result="result"
                 :showCards="!!result && showResult"
+                @select-dragon-card="selectedOption = 'dragon'"
+                @select-tiger-card="selectedOption = 'tiger'"
             />
           </div>
 
@@ -95,9 +97,9 @@
           <div class="mt-6 sm:mt-8 p-4 bg-gray-50 rounded-lg text-sm sm:text-base">
             <h3 class="text-lg font-bold mb-2">游戏规则</h3>
             <ul class="list-disc list-inside space-y-1 text-gray-600">
-              <li>龙赢：龙牌点数大于虎牌，赔率 1:1</li>
-              <li>虎赢：虎牌点数大于龙牌，赔率 1:1</li>
-              <li>和：龙虎牌点数相同，赔率 1:8</li>
+              <li>龙赢：龙牌点数大于虎牌，赔率 1:2</li>
+              <li>虎赢：虎牌点数大于龙牌，赔率 1:2</li>
+              <li>和：龙虎牌点数相同，赔率 1:9</li>
               <li>牌面大小：K > Q > J > 10 > 9 > 8 > 7 > 6 > 5 > 4 > 3 > 2 > A</li>
             </ul>
           </div>
@@ -152,9 +154,9 @@ const optionLabels = {
 }
 
 const optionMultipliers = {
-  dragon: 1,
-  tiger: 1,
-  tie: 8
+  dragon: 2,
+  tiger: 2,
+  tie: 9
 }
 
 const pagination = ref({

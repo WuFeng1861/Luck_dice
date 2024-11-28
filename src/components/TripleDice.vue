@@ -120,17 +120,17 @@
               <div>
                 <h4 class="font-bold mb-2">基础玩法</h4>
                 <ul class="list-disc list-inside space-y-1 text-gray-600">
-                  <li>大：总点数 > 11，赔率 1:2</li>
-                  <li>小：总点数 < 10，赔率 1:2</li>
-                  <li>中：总点数 10-11，赔率 1:3</li>
+                  <li>大：总点数 > 11，赔率 1:1.8</li>
+                  <li>小：总点数 < 10，赔率 1:1.8</li>
+                  <li>中：总点数 10-11，赔率 1:4</li>
                 </ul>
               </div>
               <div>
                 <h4 class="font-bold mb-2">特殊玩法</h4>
                 <ul class="list-disc list-inside space-y-1 text-gray-600">
                   <li>豹子：三个相同点数，赔率 1:30</li>
-                  <li>对子：任意两个相同点数，赔率 1:5</li>
-                  <li>顺子：三个连续点数，赔率 1:10</li>
+                  <li>对子：任意两个相同点数，赔率 1:2</li>
+                  <li>顺子：三个连续点数，赔率 1:6</li>
                 </ul>
               </div>
             </div>

@@ -25,6 +25,7 @@
           </div>
           <!-- 未开牌时显示龙图片 -->
           <img
+              @click="selectDragonCard"
               v-else
               src="@/assets/cards/dragon.png"
               alt="龙"
@@ -70,6 +71,7 @@
           </div>
           <!-- 未开牌时显示虎图片 -->
           <img
+              @click="selectTigerCard"
               v-else
               src="@/assets/cards/tiger.png"
               alt="虎"
@@ -85,7 +87,7 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
+import { defineProps, defineEmits } from 'vue';
 
 const props = defineProps({
   result: {
@@ -97,6 +99,10 @@ const props = defineProps({
     default: false
   }
 });
+
+const emits = defineEmits(['selectTigerCard', 'selectDragonCard']);
+
+
 
 const getCardDisplay = (cardNumber) => {
   const cardNames = {
@@ -116,6 +122,16 @@ const getCardSuit = (cardNumber) => {
 const getCardColor = (cardNumber) => {
   return cardNumber % 2 === 0 ? 'text-red-600' : 'text-gray-900';
 };
+
+const selectTigerCard = () => {
+  // emit
+  emits('selectTigerCard');
+}
+
+const selectDragonCard = () => {
+  // emit
+  emits('selectDragonCard');
+}
 </script>
 
 <style scoped>
