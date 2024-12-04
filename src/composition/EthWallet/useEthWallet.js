@@ -16,7 +16,7 @@ export const connectWalletBeforeAuth = async () => {
         return;
     }
     EthWallet.walletList = [etherWallet];
-    connectedWalletAddress.value = EthWallet.walletList[0].userAddress;
+    connectedWalletAddress.value = EthWallet.walletList[0].userAddress.toLowerCase();
     window.ethereum.once('accountsChanged', async () => {
         console.log('accountsChanged');
         await connectWalletBeforeAuth();
@@ -28,7 +28,7 @@ export const checkConnectWallet = async (address) => {
         ElMessage.warning('Invalid address');
         return false;
     }
-    if(address !== etherWallet.userAddress) {
+    if(address.toLowerCase() !== etherWallet.userAddress.toLowerCase()) {
         ElMessage.warning('Please connect to the correct wallet');
         return false;
     }

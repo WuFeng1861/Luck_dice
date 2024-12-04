@@ -193,7 +193,7 @@ const handleSubmit = async () => {
     }
 
     await api.post('/api/auth/bind-address', {
-      address: address.value,
+      address: address.value.toLowerCase(),
       captchaId: captchaId.value,
       captchaText: captchaText.value,
       signRes: signResult.data
