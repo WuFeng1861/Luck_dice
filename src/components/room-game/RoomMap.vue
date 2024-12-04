@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full aspect-[428/521] bg-gray-800 rounded-lg overflow-hidden">
+  <div class="relative w-full aspect-[1712/2084] bg-gray-800 rounded-lg overflow-hidden">
     <img src="https://wufeng98.cn/imgweb/uploads/1733232946066-0beb2223ec5bf442b2e62899ef5a43b.jpg" alt="Room Map" class="w-full h-full object-cover">
     
     <!-- Timer Display -->

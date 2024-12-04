@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import {onMounted, ref, watch} from 'vue'
 import { ElMessage } from 'element-plus'
 import api from '@/api/axios.js'
 import { useAuthStore } from '@/stores/auth'
@@ -209,6 +209,10 @@ const handleSubmit = async () => {
     loading.value = false
   }
 }
+
+onMounted(() => {
+  getCaptcha()
+})
 </script>
 
 <style scoped>

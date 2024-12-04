@@ -123,7 +123,7 @@ const pagination = ref({
 
 // 计算属性
 const canBet = computed(() => {
-  return betAmount.value > 0 &&
+  return betAmount.value > 0 && authStore.user?.balance > 0 &&
       betAmount.value * selectedRooms.value.length <= authStore.user?.balance &&
       [GAME_STATES.RUNNING, GAME_STATES.WAITING].includes(gameState.value)
 })
@@ -131,13 +131,13 @@ const canBet = computed(() => {
 const gameStateText = computed(() => {
   switch (gameState.value) {
     case GAME_STATES.WAITING:
-      return '等待开始'
+      return '选择躲避房间'
     case GAME_STATES.RUNNING:
       return '选择躲避房间'
     case GAME_STATES.SETTLING:
       return '结算中'
     default:
-      return '游戏结束'
+      return '等待开始'
   }
 })
 
