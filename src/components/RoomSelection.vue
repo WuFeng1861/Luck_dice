@@ -26,6 +26,11 @@
         </div>
       </div>
 
+      <!-- 收益最大用户轮播 -->
+      <div class="p-4">
+        <TopEarnersCarousel />
+      </div>
+
       <!-- 游戏区域 -->
       <div class="p-4 sm:p-8">
         <div class="space-y-6">
@@ -92,6 +97,7 @@ import RoomGameResult from './room-game/RoomGameResult.vue'
 import {getCurrentGame, placeBets} from "@/api/roomGame.js";
 import {storeToRefs} from "pinia";
 import {useGameStore} from "@/stores/game.js";
+import TopEarnersCarousel from "@/components/room-game/TopEarnersCarousel.vue";
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -321,11 +327,11 @@ const startNewGame = async () => {
       {x:0,y:3,width:38,height:30,chips:0},
       {x:38,y:5,width:28,height:28,chips:0},
       {x:66,y:3,width:35,height:30,chips:0},
-      {x:0,y:32,width:28,height:35,chips:0},
-      {x:28,y:46,width:38,height:22,chips:0},
-      {x:80,y:46,width:19,height:32,chips:0},
-      {x:0,y:66,width:28,height:32,chips:0},
-      {x:28,y:80,width:38,height:18,chips:0}
+      {x:0,y:32,width:25,height:35,chips:0},
+      {x:25,y:46,width:41,height:22,chips:0},
+      {x:82,y:46,width:19,height:36,chips:0},
+      {x:0,y:66,width:25,height:32,chips:0},
+      {x:25,y:80,width:41,height:18,chips:0}
     ]
     rooms.value = Array(8).fill(null).map((_, index) => {
       return {

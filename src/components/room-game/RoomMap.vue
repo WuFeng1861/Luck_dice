@@ -1,13 +1,13 @@
 <template>
-  <div class="relative w-full aspect-[1712/2084] bg-gray-800 rounded-lg overflow-hidden">
-    <img src="https://wufeng98.cn/imgweb/uploads/1733232946066-0beb2223ec5bf442b2e62899ef5a43b.jpg" alt="Room Map" class="w-full h-full object-cover">
+  <div class="relative w-full aspect-[568/754] bg-gray-800 rounded-lg overflow-hidden">
+    <img src="https://wufeng98.cn/imgweb/uploads/1733316189452-PixPin_2024-11-17_17-11-32.png" alt="Room Map" class="w-full h-full object-cover">
     
     <!-- Timer Display -->
-    <div class="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 px-4 py-2 rounded-full text-white font-bold">
-      <span v-if="[GAME_STATES.WAITING, GAME_STATES.RUNNING].includes(gameState)">选择躲避房间: {{ formatTime(remainingTime) }}</span>
-      <span v-else-if="gameState === GAME_STATES.SETTLING">开奖中...</span>
-      <span v-else>等待开始...</span>
-    </div>
+<!--    <div class="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 px-4 py-2 rounded-full text-white font-bold">-->
+<!--      <span v-if="[GAME_STATES.WAITING, GAME_STATES.RUNNING].includes(gameState)">选择躲避房间: {{ formatTime(remainingTime) }}</span>-->
+<!--      <span v-else-if="gameState === GAME_STATES.SETTLING">开奖中...</span>-->
+<!--      <span v-else>等待开始...</span>-->
+<!--    </div>-->
 
     <div 
       v-for="(room, index) in rooms" 
