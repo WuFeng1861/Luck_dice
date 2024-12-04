@@ -6,6 +6,7 @@ import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import GameSelect from '../views/GameSelect.vue'
 import TripleDice from '@/components/TripleDice.vue'
+import RoomSelection from '@/components/RoomSelection.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const routes = [
@@ -44,6 +45,12 @@ const routes = [
     path: '/triple-dice',
     name: 'TripleDice',
     component: TripleDice,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/room-selection',
+    name: 'RoomSelection',
+    component: RoomSelection,
     meta: { requiresAuth: true }
   },
   {

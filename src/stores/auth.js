@@ -3,7 +3,7 @@ import api from '@/api/axios.js'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: JSON.parse(localStorage.getItem('user')),
+    user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null,
     token: localStorage.getItem('token'),
     address: localStorage.getItem('address'),
     loading: false

@@ -141,6 +141,60 @@
             </router-link>
           </div>
         </div>
+        <!-- 大逃杀游戏 -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-all duration-200">
+          <div class="h-36 sm:h-48 bg-gradient-to-br from-red-900 via-red-800 to-orange-800 flex items-center justify-center relative overflow-hidden">
+            <!-- 动态背景效果 -->
+            <div class="absolute inset-0">
+              <!-- 网格背景 -->
+              <div class="absolute inset-0 grid grid-cols-8 grid-rows-8 gap-px opacity-20">
+                {Array.from({ length: 64 }).map((_, i) => (
+                <div key={i} class="border border-white/10 bg-white/5"></div>
+                ))}
+              </div>
+              <!-- 警戒区域效果 -->
+              <div class="absolute inset-0 bg-gradient-to-t from-red-500/20 via-transparent to-transparent animate-pulse"></div>
+              <!-- 扫描线效果 -->
+              <div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent h-[200%] -translate-y-1/2 animate-scan"></div>
+            </div>
+
+            <!-- 主要内容 -->
+            <div class="relative z-10 flex flex-col items-center">
+              <!-- 标题 -->
+              <div class="text-2xl sm:text-2xl font-bold text-white mb-2 tracking-wider">
+                <span class="text-red-500 drop-shadow-glow-red">BATTLE</span>
+                <span class="text-orange-500 drop-shadow-glow-orange">ROYALE</span>
+              </div>
+
+              <!-- 警告标志 -->
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-6 bg-red-500 animate-warning-left"></div>
+                <div class="px-3 py-1 bg-red-500/20 backdrop-blur-sm border border-red-500/50 rounded">
+                  <span class="text-red-500 font-mono text-sm tracking-wider animate-blink">WARNING</span>
+                </div>
+                <div class="w-2 h-6 bg-red-500 animate-warning-right"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 sm:p-6 relative overflow-hidden">
+            <!-- 背景装饰 -->
+            <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-red-500/5 rounded-full blur-2xl"></div>
+            <div class="absolute -left-8 -top-8 w-32 h-32 bg-orange-500/5 rounded-full blur-2xl"></div>
+
+            <h3 class="text-lg sm:text-xl font-bold mb-2 text-red-900">大逃杀</h3>
+            <p class="text-gray-600 mb-4 text-sm sm:text-base relative z-10">
+              在危险区域中求生！选择安全区域，躲避危险，成功存活即可瓜分奖池
+            </p>
+            <router-link
+                to="/room-selection"
+                class="block w-full text-center py-2 sm:py-3 bg-gradient-to-r from-red-900 to-orange-800 text-white rounded-lg hover:from-red-800 hover:to-orange-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base relative overflow-hidden group"
+            >
+              <span class="relative z-10">开始游戏</span>
+              <div class="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/20 to-red-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+            </router-link>
+          </div>
+        </div>
 
         <!-- 更多游戏卡片（待开发） -->
         <div class="bg-white rounded-xl shadow-lg overflow-hidden opacity-75">
@@ -235,5 +289,46 @@ const handleLogout = async () => {
 
 .hover\:to-blue-700:hover {
   --tw-gradient-to: #1d4ed8;
+}
+
+@keyframes scan {
+  0% { transform: translateY(-50%); }
+  100% { transform: translateY(0%); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes warning {
+  0%, 100% { height: 1.5rem; }
+  50% { height: 0.5rem; }
+}
+
+.animate-scan {
+  animation: scan 2s linear infinite;
+}
+
+.animate-blink {
+  animation: blink 1s ease-in-out infinite;
+}
+
+.animate-warning-left {
+  animation: warning 1s ease-in-out infinite;
+  animation-delay: 0ms;
+}
+
+.animate-warning-right {
+  animation: warning 1s ease-in-out infinite;
+  animation-delay: 500ms;
+}
+
+.drop-shadow-glow-red {
+  filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5));
+}
+
+.drop-shadow-glow-orange {
+  filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.5));
 }
 </style>

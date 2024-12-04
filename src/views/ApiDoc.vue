@@ -189,19 +189,6 @@ const apiCategories = ref([
           balance: 0
         }
       },
-      {
-        name: '更新余额',
-        method: 'POST',
-        endpoint: '/api/balance/update',
-        description: '更新用户余额（增加或减少）',
-        auth: true,
-        request: {
-          amount: 0
-        },
-        response: {
-          balance: 0
-        }
-      }
     ]
   },
   {

@@ -60,6 +60,7 @@
                     record.gameType === 'single' ? '幸运骰子' :
                         record.gameType === 'triple' ? '三倍幸运骰子' :
                             record.gameType === 'dragon-tiger' ? '龙虎斗' :
+                                record.gameType === 'battle-royale' ? '大逃杀' :
                                 record.gameType
                   }}
                 </span>
@@ -292,16 +293,22 @@ const formatSelection = (selection, gameType) => {
     return optionLabels[selection] || selection;
   }
 
-  const optionLabels = {
-    'big': '大',
-    'small': '小',
-    'middle': '中',
-    'triple': '豹子',
-    'pair': '对子',
-    'straight': '顺子'
-  };
-
-  return optionLabels[selection] || selection;
+  if(gameType === 'triple') {
+    const optionLabels = {
+      'big': '大',
+      'small': '小',
+      'middle': '中',
+      'triple': '豹子',
+      'pair': '对子',
+      'straight': '顺子'
+    };
+  
+    return optionLabels[selection] || selection;
+  }
+  if (gameType === 'battle-royale') {
+    return JSON.parse(selection).join('、')
+  }
+  
 };
 
 // 格式化结果
@@ -327,8 +334,14 @@ const formatResult = (results, gameType) => {
   }
 
   // 三骰子游戏
-  const sum = results.reduce((a, b) => a + b, 0);
-  return `${results.join('+')}=${sum}`;
+  if(gameType === 'triple') {
+    const sum = results.reduce((a, b) => a + b, 0);
+    return `${results.join('+')}=${sum}`;
+  }
+  if(gameType === 'battle-royale') {
+    return results.join('、');
+  }
+  
 };
 </script>
 
