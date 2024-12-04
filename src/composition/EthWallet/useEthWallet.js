@@ -1,6 +1,8 @@
 import EthWallet from "@/utils/ethersHelper.js";
 import {ElMessage} from "element-plus";
+import { ref } from 'vue';
 
+const connectedWalletAddress = ref('');
 let etherWallet = new EthWallet();
 export const connectWalletBeforeAuth = async () => {
     const chainId = await window.ethereum.request({method: 'eth_chainId'});
@@ -14,6 +16,7 @@ export const connectWalletBeforeAuth = async () => {
         return;
     }
     EthWallet.walletList = [etherWallet];
+    connectedWalletAddress.value = EthWallet.walletList[0].userAddress;
     window.ethereum.once('accountsChanged', async () => {
         console.log('accountsChanged');
         await connectWalletBeforeAuth();
@@ -46,4 +49,8 @@ export const getBindAddressSignRes = async () => {
         message: 'Sign success',
         data: signRes
     };
+}
+
+export const getConnectedWalletAddressRef = () => {
+  return connectedWalletAddress;
 }

@@ -25,6 +25,22 @@
           </svg>
         </button>
 
+        <!-- 地址显示按钮 -->
+        <button
+            @click="connectWalletBeforeAuth"
+            class="absolute right-4 top-4 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 text-sm flex items-center gap-2 group"
+        >
+          <span class="truncate max-w-[120px]">{{ connectedWalletAddress === '' ? '连接钱包' : connectedWalletAddress.slice(0, 5)+'...'+connectedWalletAddress.slice(-3) }}</span>
+          <svg 
+            class="w-4 h-4 transition-transform group-hover:scale-110" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+          </svg>
+        </button>
+
         <!-- 标题图标 -->
         <div class="flex justify-center mb-4">
           <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
@@ -95,17 +111,14 @@ import { useAuthStore } from '@/stores/auth'
 import {
   checkConnectWallet,
   connectWalletBeforeAuth,
-  getBindAddressSignRes
+  getBindAddressSignRes,
+  getConnectedWalletAddressRef
 } from "@/composition/EthWallet/useEthWallet.js";
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
     required: true
-  },
-  initialAddress: {
-    type: String,
-    default: ''
   },
   canClose: {
     type: Boolean,
@@ -116,11 +129,12 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'success'])
 
 const authStore = useAuthStore()
-const address = ref(props.initialAddress)
+const address = ref('')
 const captchaText = ref('')
 const captchaSvg = ref('')
 const captchaId = ref('')
 const loading = ref(false)
+const connectedWalletAddress = getConnectedWalletAddressRef();
 
 // 获取验证码
 const getCaptcha = async () => {
@@ -140,6 +154,20 @@ const refreshCaptcha = () => {
   captchaText.value = ''
 }
 
+// 复制地址
+const copyAddress = async () => {
+  if (!connectedWalletAddress.value) {
+    ElMessage.warning('请先连接钱包')
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(connectedWalletAddress.value)
+    ElMessage.success('地址已复制')
+  } catch (error) {
+    ElMessage.error('复制失败')
+  }
+}
+
 // 提交绑定
 const handleSubmit = async () => {
   if (!address.value) {
@@ -153,7 +181,6 @@ const handleSubmit = async () => {
 
   loading.value = true
   try {
-    await connectWalletBeforeAuth();
     let isConnectAddress = await checkConnectWallet(address.value);
     if(!isConnectAddress) {
       ElMessage.warning('请连接正确的钱包');
@@ -182,14 +209,6 @@ const handleSubmit = async () => {
     loading.value = false
   }
 }
-
-// 监听对话框打开
-watch(() => props.modelValue, (newVal) => {
-  if (newVal) {
-    address.value = props.initialAddress
-    getCaptcha()
-  }
-})
 </script>
 
 <style scoped>
